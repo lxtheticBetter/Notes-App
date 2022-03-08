@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:notesapp/constants/routes.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -58,7 +59,11 @@ class _RegisterViewState extends State<RegisterView> {
                     final userCredential = await FirebaseAuth.instance
                         .createUserWithEmailAndPassword(
                             email: email, password: password);
-                    print(userCredential);
+                    // print(userCredential);
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      notesRoute,
+                      (route) => false,
+                    );
                   } on FirebaseAuthException catch (e) {
                     print('authentication error');
                     print(e.code);
@@ -88,7 +93,10 @@ class _RegisterViewState extends State<RegisterView> {
             TextButton(
                 onPressed: () {
                   Navigator.pushNamedAndRemoveUntil(
-                      context, '/login/', (route) => false);
+                    context,
+                    loginRoute,
+                    (route) => false,
+                  );
                 },
                 child: const Text('Already Registered? Login Here!'))
           ],
