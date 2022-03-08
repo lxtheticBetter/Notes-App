@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notesapp/constants/routes.dart';
 
+import '../utils/show_error_dailog.dart';
+
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
 
@@ -12,8 +14,6 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
-
-  String error = "";
 
   @override
   void initState() {
@@ -50,7 +50,6 @@ class _LoginViewState extends State<LoginView> {
               enableSuggestions: false,
               autocorrect: false,
             ),
-            Text(error),
             TextButton(
                 onPressed: () async {
                   final email = _email.text;
@@ -70,23 +69,27 @@ class _LoginViewState extends State<LoginView> {
                     switch (e.code) {
                       case 'user-not-found':
                         {
-                          return setState(
-                            () => error = 'User not found!',
-                          );
+                          return await showErrorDailog(
+                              context, 'User not Found!');
                         }
                       case 'wrong-password':
                         {
-                          return setState(
-                            () => error = 'Incorrect Password',
-                          );
+                          return await showErrorDailog(
+                              context, 'Incorrect Password!');
                         }
                       default:
                         {
-                          return setState(
-                            () => error = 'Some error occured!',
+                          return await showErrorDailog(
+                            context,
+                            'Error: ${e.code}',
                           );
                         }
                     }
+                  } catch (e) {
+                    return await showErrorDailog(
+                      context,
+                      e.toString(),
+                    );
                   }
                 },
                 child: const Text("Login")),
