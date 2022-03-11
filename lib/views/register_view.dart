@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notesapp/constants/routes.dart';
+import 'package:notesapp/utils/show_error_dailog.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -12,8 +13,6 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
-
-  String error = "";
 
   @override
   void initState() {
@@ -50,7 +49,6 @@ class _RegisterViewState extends State<RegisterView> {
               enableSuggestions: false,
               autocorrect: false,
             ),
-            Text(error),
             TextButton(
                 onPressed: () async {
                   final email = _email.text;
@@ -60,33 +58,39 @@ class _RegisterViewState extends State<RegisterView> {
                         .createUserWithEmailAndPassword(
                             email: email, password: password);
                     // print(userCredential);
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      notesRoute,
-                      (route) => false,
+                    Navigator.of(context).pushNamed(
+                      verifyEmailRoute,
                     );
                   } on FirebaseAuthException catch (e) {
-                    print('authentication error');
-                    print(e.code);
+                    // print('authentication error');
+                    // print(e.code);
                     switch (e.code) {
                       case 'email-already-in-use':
                         {
-                          return setState(
-                              () => error = "Email is already in use!");
+                          return await showErrorDailog(
+                            context,
+                            'Email already in use!',
+                          );
+                        }
+                      case 'invalid-email':
+                        {
+                          return await showErrorDailog(
+                            context,
+                            'Email is invalid!',
+                          );
                         }
                       case 'weak-password':
                         {
-                          return setState(
-                            () => error = 'Password too weak',
-                          );
+                          return showErrorDailog(context, 'Password too weak!');
                         }
 
                       default:
                         {
-                          return setState(
-                            () => error = 'Some error occured',
-                          );
+                          return showErrorDailog(context, e.code.toString());
                         }
                     }
+                  } catch (e) {
+                    return showErrorDailog(context, e.toString());
                   }
                 },
                 child: const Text("Register")),
