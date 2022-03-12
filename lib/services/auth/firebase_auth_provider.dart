@@ -10,11 +10,11 @@ import '../../firebase_options.dart';
 
 class FireBaseAuthProvider implements AuthProvider {
   @override
-  Future<AuthUser> createtUser({
+  Future<AuthUser> createUser({
     required String email,
     required String password,
   }) async {
-    // TODO: implement createtUser
+    // TODO: implement createUser
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
