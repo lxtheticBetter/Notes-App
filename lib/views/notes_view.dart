@@ -1,8 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as devTools show log;
 
 import 'package:notesapp/constants/routes.dart';
+import 'package:notesapp/services/auth/auth_service.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -29,7 +29,7 @@ class _NotesViewState extends State<NotesView> {
                     final shouldLogOut = await showLogOutDailog(context);
                     devTools.log(shouldLogOut.toString());
                     if (shouldLogOut) {
-                      await FirebaseAuth.instance.signOut();
+                      await AuthService.firebase().logOut();
                       Navigator.of(context).pushNamedAndRemoveUntil(
                         loginRoute,
                         (route) => false,

@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notesapp/constants/routes.dart';
+import 'package:notesapp/services/auth/auth_exceptions.dart';
+import 'package:notesapp/services/auth/auth_service.dart';
 import 'package:notesapp/utils/show_error_dailog.dart';
 
 class RegisterView extends StatefulWidget {
@@ -54,43 +55,29 @@ class _RegisterViewState extends State<RegisterView> {
                   final email = _email.text;
                   final password = _password.text;
                   try {
-                    final userCredential = await FirebaseAuth.instance
-                        .createUserWithEmailAndPassword(
-                            email: email, password: password);
+                    final userCredential = await AuthService.firebase()
+                        .createtUser(email: email, password: password);
                     // print(userCredential);
+                    final user = AuthService.firebase().currentUser;
+                    await AuthService.firebase().sendEmailVerification();
                     Navigator.of(context).pushNamed(
                       verifyEmailRoute,
                     );
-                  } on FirebaseAuthException catch (e) {
-                    // print('authentication error');
-                    // print(e.code);
-                    switch (e.code) {
-                      case 'email-already-in-use':
-                        {
-                          return await showErrorDailog(
-                            context,
-                            'Email already in use!',
-                          );
-                        }
-                      case 'invalid-email':
-                        {
-                          return await showErrorDailog(
-                            context,
-                            'Email is invalid!',
-                          );
-                        }
-                      case 'weak-password':
-                        {
-                          return showErrorDailog(context, 'Password too weak!');
-                        }
-
-                      default:
-                        {
-                          return showErrorDailog(context, e.code.toString());
-                        }
-                    }
-                  } catch (e) {
-                    return showErrorDailog(context, e.toString());
+                  } on EmailAlreadyInUseAuthException {
+                    return await showErrorDailog(
+                      context,
+                      'Email already in use!',
+                    );
+                  } on InvalidEmailAuthException {
+                    return await showErrorDailog(
+                      context,
+                      'Email is invalid!',
+                    );
+                  } on WeakPasswordAuthException {
+                    return await showErrorDailog(context, 'Password too weak!');
+                  } on GenerciAuthexception {
+                    return await showErrorDailog(
+                        context, 'Registration failed!');
                   }
                 },
                 child: const Text("Register")),

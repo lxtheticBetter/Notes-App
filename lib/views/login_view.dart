@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notesapp/constants/routes.dart';
+import 'package:notesapp/services/auth/auth_exceptions.dart';
+import 'package:notesapp/services/auth/auth_service.dart';
 
 import '../utils/show_error_dailog.dart';
 
@@ -55,13 +56,12 @@ class _LoginViewState extends State<LoginView> {
                   final email = _email.text;
                   final password = _password.text;
                   try {
-                    final userCredential = await FirebaseAuth.instance
-                        .signInWithEmailAndPassword(
-                            email: email, password: password);
+                    final userCredential = await AuthService.firebase()
+                        .logIn(email: email, password: password);
                     // print(userCredential);
 
-                    final user = FirebaseAuth.instance.currentUser;
-                    if (user?.emailVerified ?? false) {
+                    final user = AuthService.firebase().currentUser;
+                    if (user?.isEmailVerified ?? false) {
                       Navigator.of(context).pushNamedAndRemoveUntil(
                         notesRoute,
                         (route) => false,
@@ -71,27 +71,14 @@ class _LoginViewState extends State<LoginView> {
                         verifyEmailRoute,
                       );
                     }
-                  } on FirebaseAuthException catch (e) {
-                    // print(e.code);
-                    switch (e.code) {
-                      case 'user-not-found':
-                        {
-                          return await showErrorDailog(
-                              context, 'User not Found!');
-                        }
-                      case 'wrong-password':
-                        {
-                          return await showErrorDailog(
-                              context, 'Incorrect Password!');
-                        }
-                      default:
-                        {
-                          return await showErrorDailog(
-                            context,
-                            'Error: ${e.code}',
-                          );
-                        }
-                    }
+                  } on UserNotFoundAuthException {
+                    return await showErrorDailog(context, 'User not Found!');
+                  } on WrongPasswordAuthException {
+                    return await showErrorDailog(
+                        context, 'Incorrect Password!');
+                  } on GenerciAuthexception {
+                    return await showErrorDailog(
+                        context, 'Authentication Error!');
                   } catch (e) {
                     return await showErrorDailog(
                       context,
