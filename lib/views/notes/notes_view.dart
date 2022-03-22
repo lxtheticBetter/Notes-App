@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as devTools show log;
 
@@ -14,12 +15,24 @@ class NotesView extends StatefulWidget {
 enum MenuAction { logout }
 
 class _NotesViewState extends State<NotesView> {
+  final Stream<QuerySnapshot> notes =
+      FirebaseFirestore.instance.collection('notes').snapshots();
+
+  CollectionReference notesCollectionReferance =
+      FirebaseFirestore.instance.collection('notes');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Notes"),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(newNoteRoute);
+            },
+            icon: const Icon(Icons.add),
+          ),
           PopupMenuButton<MenuAction>(
             onSelected: (value) async {
               // devTools.log(value.toString());
@@ -52,7 +65,41 @@ class _NotesViewState extends State<NotesView> {
           )
         ],
       ),
-      body: const Text("Hello"),
+      body: Column(
+        children: [
+          StreamBuilder<QuerySnapshot>(
+            stream: notes,
+            builder: (
+              BuildContext context,
+              AsyncSnapshot<QuerySnapshot> snapshot,
+            ) {
+              if (snapshot.hasError) {
+                return const Text('Some Error');
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Text('Loading....');
+              }
+
+              final data = snapshot.requireData;
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: data.size,
+                itemBuilder: (context, index) {
+                  return Text('${data.docs[index]['note']}');
+                },
+              );
+            },
+          ),
+          TextButton(
+            onPressed: () async {
+              Map<String, dynamic> demoData = {'note': 'Code for 4hrs'};
+              final id = await notesCollectionReferance.add(demoData);
+              print('id$id');
+            },
+            child: const Text('Add Data'),
+          )
+        ],
+      ),
     );
   }
 }
